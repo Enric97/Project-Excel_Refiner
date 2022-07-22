@@ -23,14 +23,15 @@ def selectFileWindow():
 # print(fileDirectory)
 
 
-doc = pd.read_excel(r'D:\Github\personal\Project-TE2T\folder_in\provaS11.xlsx')
-# wb = xlrd.open_workbook('folder_in\provaS11.xlsx', formatting_info=True)
+# doc = pd.read_excel(r'D:\Github\personal\Project-TE2T\folder_in\provaS11.xlsx')
+wb = xlrd.open_workbook('folder_in\provaS12.xls', formatting_info=True)
 
-# sheet = wb.sheet_by_name("Hoja1")
+sheet = wb.sheet_by_name("Hoja1")
 # f = open("testing.txt", 'w')
 # f.write(doc.iloc[0][0])
-print(doc)
-
+# print(sheet)
+for rx in range (sheet.nrows):
+    print(sheet.row(rx))
 
 
 
