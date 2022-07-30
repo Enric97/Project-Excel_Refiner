@@ -26,7 +26,7 @@ initial_date_value = "" # Indicar que es vol posar en la columna de DATA_INICI
 #   ---------- Es poden codificar més en cas de que fos necessari -------
 
 
-
+#Finestreta per seleccionar l'arxiu del TermCat
 def selectFileWindow():
 
     root = tk.Tk()
