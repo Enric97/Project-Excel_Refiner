@@ -3,8 +3,7 @@ import pandas as pd # Open Excel
 import tkinter as tk    #Window dialog
 from tkinter import filedialog
 import os
-from openpyxl import load_workbook
-import xlrd
+
 
 
 def selectFileWindow():
@@ -19,21 +18,29 @@ def selectFileWindow():
     return file_path
 
 
-# fileDirectory=selectFileWindow()
-# print(fileDirectory)
+fileDirectory=selectFileWindow()
 
 
-# doc = pd.read_excel(r'D:\Github\personal\Project-TE2T\folder_in\provaS11.xlsx')
-wb = xlrd.open_workbook('folder_in\provaS12.xls', formatting_info=True)
 
-sheet = wb.sheet_by_name("Hoja1")
-# f = open("testing.txt", 'w')
-# f.write(doc.iloc[0][0])
-# print(sheet)
-for rx in range (sheet.nrows):
-    print(sheet.row(rx))
+#Llegim el document del termCat que s'ens indica el directori
+#La part del index solventa el problema de les cel.les mergeades
+termcatDoc = pd.read_excel(fileDirectory, index_col=[0])
 
 
+#Creem un document d'output
+outputNameFile="testingOutput.xlsx"
+outputDoc = pd.ExcelWriter(outputNameFile, engine="xlsxwriter")
+outputDoc.save()
+
+#Obrim el document d'ouput en una variable
+outputDoc = pd.read_excel(outputNameFile)
+
+#-----------------------
+
+
+
+
+print(termcatDoc)
 
 
 
