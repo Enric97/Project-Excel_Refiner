@@ -23,6 +23,7 @@ fileDirectory = "" # Directori on tenim el fitxer del termCat
 outputFileName = "" + ".xlsx" # Inidicar el nom de sortida del nou document
 language_value = "" # Indicar el que es vol posar en la columna d'IDIOMA del nou Excel
 initial_date_value = "" # Indicar que es vol posar en la columna de DATA_INICI
+outputFileDirectory = "" # Indicar el directory del arxiu de sortida
 
 #   ---------- Es poden codificar més en cas de que fos necessari -------
 
@@ -98,15 +99,19 @@ def refineValidDictionaryValues():
     for key, value in diccionary.items(): # Iterem per cada item del diccionari
         
         for item in value:  # Iterem per cada forma complementaria
-            if(item != ""):
-                paraula += item
-            if(item != value[-1]):
-                paraula += "||| "
+            if(item==""):
+                break
+            else:              
+                paraula += item.strip()     # Mètode que elimina els whitespaces del principi i final del string --> així no quedan desquadrats els espais
+                if(item != value[-1]):
+                    paraula += " ||| "
         
+        paraula = paraula.replace("\n","")  # Per eliminar salts de línia que hi han randoms en el document del Termcat
         diccionary_arreglat[key]=paraula    # Afegim la definició ben escrita al diccionari bó
 
         if(paraula!=""):        # Aprofitem la iteració per crear el contingut del alalex_desc, que es la suma dels anteriors                
-            alelex_desc.append(key +"||| "+ paraula)
+            key=key.strip()     # Igual que amb paraula, eliminem els espais que pougui tenir, així aconseguim un format uniforme
+            alelex_desc.append(key +" ||| "+ paraula)
         else:
             alelex_desc.append(key)
 
@@ -116,10 +121,12 @@ def refineValidDictionaryValues():
 # Afegim el diccionary arreglat al dataframe, al menys les 3 columnes que tenim fins ara
 def firstHalfDataFrame():
     global newDataFrame
+    global alelex_desc
 
     newDataFrame["F_PRINCIPAL"]=diccionary_arreglat.keys()
     newDataFrame["F_COMPLEMENT"]=diccionary_arreglat.values()
     newDataFrame["ALELEX_DESC"]= alelex_desc
+    newDataFrame["DESC_CA"]= alelex_desc
 
 
 # Afegim els items necesaris a las columnes d'idioma i data_inici
