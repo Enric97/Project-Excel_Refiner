@@ -26,7 +26,7 @@ initial_date_value = "" # Indicar que es vol posar en la columna de DATA_INICI
 #   ---------- Es poden codificar més en cas de que fos necessari -------
 
 
-#Finestreta per seleccionar l'arxiu del TermCat
+# Finestreta per seleccionar l'arxiu del TermCat
 def selectFileWindow():
 
     root = tk.Tk()
@@ -48,8 +48,8 @@ def loadExcel(fileDirectory):
     termcatDoc['Forma principal'] = termcatDoc['Forma principal'].fillna(method="ffill") #Arreglem cel.les combinades de la primera filera
     termcatDoc = termcatDoc.fillna('')     #Definim que els valors buits seran ''
 
- #Creem un DataFrame amb com volem que siguin les coses
- #Basicament estem definint les cel.les de l'excel
+ # Creem un DataFrame amb com volem que siguin les coses
+ # Basicament estem definint les cel.les de l'excel
 def createNewDataFrame():
     global newDataFrame
 
