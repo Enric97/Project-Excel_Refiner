@@ -1,10 +1,11 @@
 import pandas as pd # Open Excel
-import tkinter as tk    #Window dialog
+import tkinter as tk    # Window dialog
 from tkinter import filedialog
-import os
+import os   # Directoris
 
 
-#definim variables
+# <----------------- DEFINICIÓ DE LES VARIABLES ----------------->
+
 termcatDoc = "" # Variable on guardarem el DataFrame (l'excel) del TermCat
 newDataFrame = "" # DataFrame (estructura) del nou excel que crearem
 diccionary = {} # Diccionary on guardarem f_principal(key) i llista de complementaries (values)
@@ -26,6 +27,8 @@ initial_date_value = "" # Indicar que es vol posar en la columna de DATA_INICI
 #   ---------- Es poden codificar més en cas de que fos necessari -------
 
 
+# <----------------- COMENCEN ELS DIFERENTS MÈTODES (ORDENATS) ----------------->
+
 # Finestreta per seleccionar l'arxiu del TermCat
 def selectFileWindow():
 
@@ -39,17 +42,19 @@ def selectFileWindow():
     return file_path
 
 
+# Llegim el document del termCat que s'ens indica el directori
 def loadExcel(fileDirectory):
     global termcatDoc
-    #Llegim el document del termCat que s'ens indica el directori
+    
     #La segona part serveix per arreglar les cel.les combinades
     #La tercera linea definirà que els valors NaN pasin a ser strings buits
     termcatDoc = pd.read_excel(fileDirectory)
     termcatDoc['Forma principal'] = termcatDoc['Forma principal'].fillna(method="ffill") #Arreglem cel.les combinades de la primera filera
     termcatDoc = termcatDoc.fillna('')     #Definim que els valors buits seran ''
 
- # Creem un DataFrame amb com volem que siguin les coses
- # Basicament estem definint les cel.les de l'excel
+
+# Creem un DataFrame amb com volem que siguin les coses
+# Basicament estem definint les cel.les de l'excel
 def createNewDataFrame():
     global newDataFrame
 
@@ -65,16 +70,11 @@ def createNewDataFrame():
             'F_PRINCIPAL',
             'F_COMPLEMENT'])
 
+
 # Metode que afegeix a un diccionary keys com forma principal i values com formes complemetaries
 def createDictionary():
-
     global diccionary
     global diccionary_arreglat
-
-    # Eliminar ----------------------------
-    # diccionary = {} #diccionary on elvalor sera una llista dels diferents opcions
-    # diccionary_arreglat = {} #Diccionary on el valor sera la cocatenacio amb format correcte
-    # Eliminar ----------------------------
 
     #Creem el diccionari malo i las keys del diccionary bo
     for row in range(len(termcatDoc.index)): #iterem sobre el numero de filas del doc del Termcat
@@ -88,10 +88,10 @@ def createDictionary():
 
         diccionary[formaPrincipal].append(formaComplement)
 
+
 # Mètode en que posem les formes complementaries correctament (amb |||) al diccionary_arreglat
 # Creem els values en el diccionary bo concatenant els diferents values del diccionary malo
 def refineValidDictionaryValues():
-  
     global alelex_desc
     paraula=""
 
@@ -113,12 +113,14 @@ def refineValidDictionaryValues():
         paraula=""            # Reiniciem variable  
 
 
+# Afegim el diccionary arreglat al dataframe, al menys les 3 columnes que tenim fins ara
 def firstHalfDataFrame():
-    # Afegim el diccionary arreglat al dataframe
     global newDataFrame
+
     newDataFrame["F_PRINCIPAL"]=diccionary_arreglat.keys()
     newDataFrame["F_COMPLEMENT"]=diccionary_arreglat.values()
     newDataFrame["ALELEX_DESC"]= alelex_desc
+
 
 # Afegim els items necesaris a las columnes d'idioma i data_inici
 def completeLanguageAndInitialDateColumns():
@@ -134,6 +136,7 @@ def completeLanguageAndInitialDateColumns():
 # Afegim l'idioma i data d'inici al dataFrame
 def secondHalfDataFrame():
     global newDataFrame
+
     newDataFrame["IDIOMA"]= idioma
     newDataFrame["DATA_INI"]= data_inici
 
@@ -141,10 +144,11 @@ def secondHalfDataFrame():
 # Exportem a Excel
 def exportingToExcel():
     global newDataFrame
+
     newDataFrame.to_excel("really.xlsx", index=False)
 
 
-
+# <----------------- MAIN ----------------->
 
 
 fileDirectory=selectFileWindow()
