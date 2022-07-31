@@ -17,13 +17,14 @@ alelex_desc = [] # Llista on guardarem el valor que li toca a aquesta columna de
 idioma = [] # Llista on tindrem tots els valors de la columna d'idioma del excel que generem
 data_inici = [] # Llista on tindrem tots els valors de la comuna de data d'inici del excel que generem
 fileDirectory = "" # Directori on tenim el fitxer del termCat
+outputFileDirectory = os.getcwd()+"/folder_out" # Indicar el directory del arxiu de sortida
+outputFileName = "" # Inidicar el nom de sortida del nou document
+outputDirectoryFile = "" # Suma dels directori de sortida i nom del arxiu
 
 
 #HARDCODED VARIABLES (WIP)
-outputFileName = "" # Inidicar el nom de sortida del nou document
 language_value = "" # Indicar el que es vol posar en la columna d'IDIOMA del nou Excel
 initial_date_value = "" # Indicar que es vol posar en la columna de DATA_INICI
-outputFileDirectory = os.getcwd()+"/folder_out" # Indicar el directory del arxiu de sortida
 
 #   ---------- Es poden codificar més en cas de que fos necessari -------
 
