@@ -20,10 +20,10 @@ fileDirectory = "" # Directori on tenim el fitxer del termCat
 
 
 #HARDCODED VARIABLES (WIP)
-outputFileName = "" + ".xlsx" # Inidicar el nom de sortida del nou document
+outputFileName = "" # Inidicar el nom de sortida del nou document
 language_value = "" # Indicar el que es vol posar en la columna d'IDIOMA del nou Excel
 initial_date_value = "" # Indicar que es vol posar en la columna de DATA_INICI
-outputFileDirectory = "" # Indicar el directory del arxiu de sortida
+outputFileDirectory = os.getcwd()+"/folder_out" # Indicar el directory del arxiu de sortida
 
 #   ---------- Es poden codificar més en cas de que fos necessari -------
 
@@ -32,13 +32,20 @@ outputFileDirectory = "" # Indicar el directory del arxiu de sortida
 
 # Finestreta per seleccionar l'arxiu del TermCat
 def selectFileWindow():
-
+    global outputFileName
     root = tk.Tk()
     root.withdraw()
 
     currentDir=os.getcwd()  #Pillem el directori des de on estem executant
-    #Obrim unicament xlsx amb el directori inicial d'asobre
-    file_path = filedialog.askopenfilename(initialdir=currentDir, filetypes=(('xlsx files','*.xlsx'),))
+    # Obrim unicament xlsx amb el directori inicial d'asobre, e indiquem titol de la finestreta
+    file_path = filedialog.askopenfilename(
+        initialdir=currentDir, 
+        title="Selecciona l'arxiu del TermCat",
+        filetypes=(('xlsx files','*.xlsx'),)
+    )
+
+    # Per que el arxiu de sortida contingui el nom del arxiu d'entrada
+    outputFileName= os.path.splitext(os.path.basename(file_path))[0]
 
     return file_path
 
@@ -84,6 +91,7 @@ def createDictionary():
         formaComplement = termcatDoc.iloc[row,1]
 
         if(formaPrincipal not in diccionary):
+            formaPrincipal = formaPrincipal.strip()     #Fem que la key tampoc tingui salts de linia ni espais en blanc al principi i final del text (important de cara al diccionary_arreglat)
             diccionary[formaPrincipal] = list()
             diccionary_arreglat[formaPrincipal] =""
 
@@ -148,11 +156,18 @@ def secondHalfDataFrame():
     newDataFrame["DATA_INI"]= data_inici
 
 
-# Exportem a Excel
+# Exportem a Excel i a txt (tindrem dos arxius iguals, amb diferent format)
 def exportingToExcel():
     global newDataFrame
+    global outputFileName
+    global outputFileDirectory
 
-    newDataFrame.to_excel("really.xlsx", index=False)
+    # newDataFrame.to_excel("really.xlsx", index=False)
+    # newDataFrame.to_csv("really.txt", sep="\t", index=False)
+    outputDirectoryFile = outputFileDirectory + "/" + outputFileName
+
+    newDataFrame.to_excel(outputDirectoryFile+"_refined.xlsx", index=False)
+    newDataFrame.to_csv(outputDirectoryFile+"_refined.txt", sep="\t", index=False)
 
 
 # <----------------- MAIN ----------------->
