@@ -13,13 +13,14 @@ diccionary_arreglat = {} # Diccionary on tindrem escrit adequadament la llista d
 formaPrincipal = "" # Variable utilitzada per iterar sobre el doc del termCat sobre el valor de forma principal
 formaComplement = "" # Variable utilitzada per iterar sobre el doc del termCat sobre el valor de les formes complementaries
 paraula = "" # Placeholder d'iteracions sobre les diferents formes complementaries
-alelex_desc = [] # Llista on guardarem el valor que li toca a aquesta columna del excel que generem (principal + complementaries)
+_descColumn = [] # Llista on guardarem el valor que li toca a aquesta columna del excel que generem (principal + complementaries)
 idioma = [] # Llista on tindrem tots els valors de la columna d'idioma del excel que generem
 data_inici = [] # Llista on tindrem tots els valors de la comuna de data d'inici del excel que generem
 fileDirectory = "" # Directori on tenim el fitxer del termCat
 outputFileDirectory = os.getcwd()+"/folder_out" # Indicar el directory del arxiu de sortida
 outputFileName = "" # Inidicar el nom de sortida del nou document
 outputDirectoryFile = "" # Suma dels directori de sortida i nom del arxiu
+columnName = "" # Nom de la columna demanada, tipus "ALELEX" o "MENLEX"
 
 
 #HARDCODED VARIABLES (WIP)
@@ -33,7 +34,6 @@ initial_date_value = "" # Indicar que es vol posar en la columna de DATA_INICI
 
 # Finestreta per seleccionar l'arxiu del TermCat
 def selectFileWindow():
-    global outputFileName
     root = tk.Tk()
     root.withdraw()
 
@@ -44,12 +44,16 @@ def selectFileWindow():
         title="Selecciona l'arxiu del TermCat",
         filetypes=(('xlsx files','*.xlsx'),)
     )
-
-    # Per que el arxiu de sortida contingui el nom del arxiu d'entrada
-    outputFileName= os.path.splitext(os.path.basename(file_path))[0]
-
     return file_path
 
+# Demanem al usuari que ens indiqui el nom de la priemra i segona columna, que també utilitzem com nom de arxiu
+def setColumnName():
+    global columnName
+    global outputFileName
+
+    columnName = input("Inica el nom de la columna que fa referencia al document (ex. ALELEX o MENLEX)\n\t")
+    columnName = columnName.upper()
+    outputFileName = columnName
 
 # Llegim el document del termCat que s'ens indica el directori
 def loadExcel(fileDirectory):
@@ -66,10 +70,11 @@ def loadExcel(fileDirectory):
 # Basicament estem definint les cel.les de l'excel
 def createNewDataFrame():
     global newDataFrame
+    global columnName
 
     newDataFrame = pd.DataFrame(columns=[
-            'ALELEX_ID', 
-            'ALELEX_DESC',
+            columnName+'_ID', 
+            columnName+'_DESC',
             'IDIOMA',
             'DATA_INI',
             'DATA_FIN',
@@ -102,7 +107,7 @@ def createDictionary():
 # Mètode en que posem les formes complementaries correctament (amb |||) al diccionary_arreglat
 # Creem els values en el diccionary bo concatenant els diferents values del diccionary malo
 def refineValidDictionaryValues():
-    global alelex_desc
+    global _descColumn
     paraula=""
 
     for key, value in diccionary.items(): # Iterem per cada item del diccionari
@@ -120,9 +125,9 @@ def refineValidDictionaryValues():
 
         if(paraula!=""):        # Aprofitem la iteració per crear el contingut del alalex_desc, que es la suma dels anteriors                
             key=key.strip()     # Igual que amb paraula, eliminem els espais que pougui tenir, així aconseguim un format uniforme
-            alelex_desc.append(key +" ||| "+ paraula)
+            _descColumn.append(key +" ||| "+ paraula)
         else:
-            alelex_desc.append(key)
+            _descColumn.append(key)
 
         paraula=""            # Reiniciem variable  
 
@@ -130,12 +135,13 @@ def refineValidDictionaryValues():
 # Afegim el diccionary arreglat al dataframe, al menys les 3 columnes que tenim fins ara
 def firstHalfDataFrame():
     global newDataFrame
-    global alelex_desc
+    global _descColumn
+    global columnName
 
     newDataFrame["F_PRINCIPAL"]=diccionary_arreglat.keys()
     newDataFrame["F_COMPLEMENT"]=diccionary_arreglat.values()
-    newDataFrame["ALELEX_DESC"]= alelex_desc
-    newDataFrame["DESC_CA"]= alelex_desc
+    newDataFrame[columnName+"_DESC"]= _descColumn
+    newDataFrame["DESC_CA"]= _descColumn
 
 
 # Afegim els items necesaris a las columnes d'idioma i data_inici
@@ -162,13 +168,14 @@ def exportingToExcel():
     global newDataFrame
     global outputFileName
     global outputFileDirectory
+    
 
     # newDataFrame.to_excel("really.xlsx", index=False)
     # newDataFrame.to_csv("really.txt", sep="\t", index=False)
-    outputDirectoryFile = outputFileDirectory + "/" + outputFileName
+    outputDirectoryFile = outputFileDirectory + "/catàleg_REF_" + outputFileName
 
-    newDataFrame.to_excel(outputDirectoryFile+"_refined.xlsx", index=False)
-    newDataFrame.to_csv(outputDirectoryFile+"_refined.txt", sep="\t", index=False)
+    newDataFrame.to_excel(outputDirectoryFile+".xlsx", index=False)
+    newDataFrame.to_csv(outputDirectoryFile+".txt", sep="\t", index=False)
 
 
 # <----------------- MAIN ----------------->
@@ -176,6 +183,7 @@ def exportingToExcel():
 
 fileDirectory=selectFileWindow()
 
+setColumnName()
 loadExcel(fileDirectory)
 createNewDataFrame()
 createDictionary()
