@@ -21,7 +21,12 @@ outputFileDirectory = os.getcwd()+"/folder_out" # Indicar el directory del arxiu
 outputFileName = "" # Inidicar el nom de sortida del nou document
 outputDirectoryFile = "" # Suma dels directori de sortida i nom del arxiu
 columnName = "" # Nom de la columna demanada, tipus "ALELEX" o "MENLEX"
+index_column = []
 
+#---------- NEw Vars
+definitionAndNotes = False
+definitionColumn = []
+notesColumn = []
 
 #HARDCODED VARIABLES (WIP)
 language_value = "" # Indicar el que es vol posar en la columna d'IDIOMA del nou Excel
@@ -54,6 +59,8 @@ def setColumnName():
     columnName = input("Inica el nom de la columna que fa referencia al document (ex. ALELEX o MENLEX)\n\t")
     columnName = columnName.upper()
     outputFileName = columnName
+
+
 
 # Llegim el document del termCat que s'ens indica el directori
 def loadExcel(fileDirectory):
@@ -94,10 +101,11 @@ def createDictionary():
     for row in range(len(termcatDoc.index)): #iterem sobre el numero de filas del doc del Termcat
         
         formaPrincipal= termcatDoc.iloc[row, 0]
+        formaPrincipal = formaPrincipal.strip()     #Fem que la key tampoc tingui salts de linia ni espais en blanc al principi i final del text (important de cara al diccionary_arreglat)
+        formaPrincipal = formaPrincipal.replace("\n","")
         formaComplement = termcatDoc.iloc[row,1]
 
-        if(formaPrincipal not in diccionary):
-            formaPrincipal = formaPrincipal.strip()     #Fem que la key tampoc tingui salts de linia ni espais en blanc al principi i final del text (important de cara al diccionary_arreglat)
+        if(formaPrincipal not in diccionary.keys()):
             diccionary[formaPrincipal] = list()
             diccionary_arreglat[formaPrincipal] =""
 
@@ -108,6 +116,9 @@ def createDictionary():
 # Creem els values en el diccionary bo concatenant els diferents values del diccionary malo
 def refineValidDictionaryValues():
     global _descColumn
+    global diccionary
+    global diccionary_arreglat
+
     paraula=""
 
     for key, value in diccionary.items(): # Iterem per cada item del diccionari
@@ -125,6 +136,7 @@ def refineValidDictionaryValues():
 
         if(paraula!=""):        # Aprofitem la iteració per crear el contingut del alalex_desc, que es la suma dels anteriors                
             key=key.strip()     # Igual que amb paraula, eliminem els espais que pougui tenir, així aconseguim un format uniforme
+            key = key.replace("\n","")
             _descColumn.append(key +" ||| "+ paraula)
         else:
             _descColumn.append(key)
@@ -149,18 +161,23 @@ def completeLanguageAndInitialDateColumns():
     global idioma
     global data_inici
     global newDataFrame
+    global index_column
 
     for row in range(0,len(newDataFrame.index)): # Totes son iguals, i n'hi ha tantes com files...
         idioma.append("ca")
         data_inici.append("01012021")
+        index_column.append(row+1)
+
 
 
 # Afegim l'idioma i data d'inici al dataFrame
 def secondHalfDataFrame():
     global newDataFrame
+    global index_column
 
     newDataFrame["IDIOMA"]= idioma
     newDataFrame["DATA_INI"]= data_inici
+    newDataFrame[columnName+"_ID"]=index_column
 
 
 # Exportem a Excel i a txt (tindrem dos arxius iguals, amb diferent format)
@@ -178,13 +195,54 @@ def exportingToExcel():
     newDataFrame.to_csv(outputDirectoryFile+".txt", sep="\t", index=False)
 
 
+# -----------Other coloumns --------
+
+def askForAdditionalColumns():
+    global definitionAndNotes
+
+    answer = input("Existeixen les columnes de definicio i notes? (y/n)\n\t")
+    if(answer.casefold =="y"):
+        definitionAndNotes = True
+    
+    return definitionAndNotes
+
+def loadAdditionalColumns():
+    global termcatDoc
+
+    termcatDoc['Definició'] = termcatDoc['Definició'].fillna(method="ffill")
+    termcatDoc['Notes'] = termcatDoc['Notes'].fillna(method="ffill")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # <----------------- MAIN ----------------->
 
 
 fileDirectory=selectFileWindow()
 
 setColumnName()
+
+askForAdditionalColumns()
+
 loadExcel(fileDirectory)
+
+# if(definitionAndNotes):
+#     loadAdditionalColumns()
+
+# print(termcatDoc)
+
 createNewDataFrame()
 createDictionary()
 refineValidDictionaryValues()
