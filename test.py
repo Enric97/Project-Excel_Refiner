@@ -21,18 +21,20 @@ outputFileDirectory = os.getcwd()+"/folder_out" # Indicar el directory del arxiu
 outputFileName = "" # Inidicar el nom de sortida del nou document
 outputDirectoryFile = "" # Suma dels directori de sortida i nom del arxiu
 columnName = "" # Nom de la columna demanada, tipus "ALELEX" o "MENLEX"
-index_column = []
+index_column = [] # Array on fiquem el número de ID, el numero de fila en la que estem
 
-#---------- NEw Vars
-definitionAndNotes = False
-definitionColumn = []
-notesColumn = []
+#---------- New Variables, relacionades amb processar documents amb columna de DEFINICIO i NOTES
+definitionAndNotes=False    # Es demana al usuari si el document conté aquestes columnes
+diccionary_formaPrincipal_def = {}  # Diccionari que correlaciona cada forma principal amb la seva definicio
+diccionary_formaPrincipal_notes  = {} # Diccionari que correlaciona cada forma principal amb la seva nota
+
 
 #HARDCODED VARIABLES (WIP)
 language_value = "" # Indicar el que es vol posar en la columna d'IDIOMA del nou Excel
 initial_date_value = "" # Indicar que es vol posar en la columna de DATA_INICI
 
 #   ---------- Es poden codificar més en cas de que fos necessari -------
+
 
 
 # <----------------- COMENCEN ELS DIFERENTS MÈTODES (ORDENATS) ----------------->
@@ -65,16 +67,21 @@ def setColumnName():
 # Llegim el document del termCat que s'ens indica el directori
 def loadExcel(fileDirectory):
     global termcatDoc
+    global definitionAndNotes
     
     #La segona part serveix per arreglar les cel.les combinades
     #La tercera linea definirà que els valors NaN pasin a ser strings buits
     termcatDoc = pd.read_excel(fileDirectory)
     termcatDoc['Forma principal'] = termcatDoc['Forma principal'].fillna(method="ffill") #Arreglem cel.les combinades de la primera filera
+
+    if(definitionAndNotes): # En cas que tinguem aquestes dues columnes, les carreguem tambe al termcatDoc
+        loadAdditionalColumns()
+
     termcatDoc = termcatDoc.fillna('')     #Definim que els valors buits seran ''
 
 
 # Creem un DataFrame amb com volem que siguin les coses
-# Basicament estem definint les cel.les de l'excel
+# Basicament estem definint les cel.les base del l'excel
 def createNewDataFrame():
     global newDataFrame
     global columnName
@@ -96,25 +103,43 @@ def createNewDataFrame():
 def createDictionary():
     global diccionary
     global diccionary_arreglat
+    global definitionAndNotes
+    global diccionary_formaPrincipal_def
+    global diccionary_formaPrincipal_notes 
 
     #Creem el diccionari malo i las keys del diccionary bo
     for row in range(len(termcatDoc.index)): #iterem sobre el numero de filas del doc del Termcat
         
         formaPrincipal= termcatDoc.iloc[row, 0]
         formaPrincipal = formaPrincipal.strip()     #Fem que la key tampoc tingui salts de linia ni espais en blanc al principi i final del text (important de cara al diccionary_arreglat)
-        formaPrincipal = formaPrincipal.replace("\n","")
+        formaPrincipal = formaPrincipal.replace("\n","") #Eliminem qualsevol salt de línia enmig del text 
         formaComplement = termcatDoc.iloc[row,1]
 
-        if(formaPrincipal not in diccionary.keys()):
+        if(formaPrincipal not in diccionary.keys()): # Per cada forma principal, afegim les seves complementaries en una llista
             diccionary[formaPrincipal] = list()
             diccionary_arreglat[formaPrincipal] =""
 
         diccionary[formaPrincipal].append(formaComplement)
 
 
+        if(definitionAndNotes):     # Part on afegim les entrades, però amb el diccionari on guardem definicions i notes
+            
+            # Quan tenim celes combinades, es llegueixen els valors en la primera fila, mentre que las seguents 
+            # es llegueixen com a buides [al fer servir el fillna es duplican els valors, pero sol ho hem fet en la columna de F_Principal]
+            # Sabem que, tot i que siguin cel.les combinades, la primera de forma principal correspon amb la primera de def i notes 
+            # Si estan combinades, les inferiors en def i notes estaran buides
+            # Intent d'explicar perque sol mapejem 1-1
+            if(formaPrincipal not in  diccionary_formaPrincipal_def.keys()):
+                diccionary_formaPrincipal_def[formaPrincipal]= termcatDoc.iloc[row,2]
+
+            if(formaPrincipal not in  diccionary_formaPrincipal_notes.keys()):
+                diccionary_formaPrincipal_notes[formaPrincipal]= termcatDoc.iloc[row,3]
+          
+        
+
 # Mètode en que posem les formes complementaries correctament (amb |||) al diccionary_arreglat
 # Creem els values en el diccionary bo concatenant els diferents values del diccionary malo
-def refineValidDictionaryValues():
+def formatFComplementaries():
     global _descColumn
     global diccionary
     global diccionary_arreglat
@@ -187,33 +212,65 @@ def exportingToExcel():
     global outputFileDirectory
     
 
-    # newDataFrame.to_excel("really.xlsx", index=False)
-    # newDataFrame.to_csv("really.txt", sep="\t", index=False)
     outputDirectoryFile = outputFileDirectory + "/catàleg_REF_" + outputFileName
 
     newDataFrame.to_excel(outputDirectoryFile+".xlsx", index=False)
     newDataFrame.to_csv(outputDirectoryFile+".txt", sep="\t", index=False)
 
 
-# -----------Other coloumns --------
+# ----------- Mètodes relacionats amb NOTES i DEFINICIO--------
 
+# Demanar input al usuari sobre si existeixen les columnes.
+# Aplicat bucle de correcció
 def askForAdditionalColumns():
     global definitionAndNotes
 
-    answer = input("Existeixen les columnes de definicio i notes? (y/n)\n\t")
-    if(answer.casefold =="y"):
-        definitionAndNotes = True
+    while(1):
+        answer = input("Existeixen les columnes de definicio i notes? (y/n)\n\t")
+        if(answer.casefold() =="y"):
+            definitionAndNotes = True
+            print("Adding Notes and Definition columns")
+            break
+        elif(answer.casefold() =="n"):
+            print("Not adding Notes and Definition columns")
+            break
+        else:
+            print("No he entès... \n")
     
-    return definitionAndNotes
 
+# Innecessari¿?
 def loadAdditionalColumns():
     global termcatDoc
 
-    termcatDoc['Definició'] = termcatDoc['Definició'].fillna(method="ffill")
-    termcatDoc['Notes'] = termcatDoc['Notes'].fillna(method="ffill")
+    termcatDoc['Definició'] = termcatDoc['Definició']
+    termcatDoc['Notes'] = termcatDoc['Notes']
 
 
+# Pujem al Dataframe les columnes de definició i notes captades en el seu map
+def thirdHalfDataFrame():
+    global diccionary_formaPrincipal_def
+    global diccionary_formaPrincipal_notes
 
+    arreglarDefinicionsiNotes()
+
+    newDataFrame['DEFINICIÓ'] = pd.Series(diccionary_formaPrincipal_def.values())
+    newDataFrame['NOTES'] = pd.Series(diccionary_formaPrincipal_notes.values())
+    
+
+# Fem un tractament de definicions i notes, eliminants salts de linea i espais a principi i final
+def arreglarDefinicionsiNotes():
+    global diccionary_formaPrincipal_def
+    global diccionary_formaPrincipal_notes
+
+    for key,value in diccionary_formaPrincipal_def.items():
+        value = value.strip()
+        value = value.replace("\n", " ")
+        diccionary_formaPrincipal_def[key]=value
+    
+    for key,value in diccionary_formaPrincipal_notes.items():
+        value = value.strip()
+        value = value.replace("\n", " ")
+        diccionary_formaPrincipal_notes[key]=value
 
 
 
@@ -228,7 +285,8 @@ def loadAdditionalColumns():
 
 
 # <----------------- MAIN ----------------->
-
+pd.set_option('display.max_columns', None)
+pd.set_option('display.width',200)
 
 fileDirectory=selectFileWindow()
 
@@ -238,18 +296,20 @@ askForAdditionalColumns()
 
 loadExcel(fileDirectory)
 
-# if(definitionAndNotes):
-#     loadAdditionalColumns()
 
-# print(termcatDoc)
 
 createNewDataFrame()
 createDictionary()
-refineValidDictionaryValues()
+formatFComplementaries()
 firstHalfDataFrame()
 completeLanguageAndInitialDateColumns()
 secondHalfDataFrame()
+
+if(definitionAndNotes):
+    thirdHalfDataFrame()
+
 exportingToExcel()
+
 
 print(newDataFrame)
 
