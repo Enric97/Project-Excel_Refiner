@@ -74,9 +74,6 @@ def loadExcel(fileDirectory):
     termcatDoc = pd.read_excel(fileDirectory)
     termcatDoc['Forma principal'] = termcatDoc['Forma principal'].fillna(method="ffill") #Arreglem cel.les combinades de la primera filera
 
-    if(definitionAndNotes): # En cas que tinguem aquestes dues columnes, les carreguem tambe al termcatDoc
-        loadAdditionalColumns()
-
     termcatDoc = termcatDoc.fillna('')     #Definim que els valors buits seran ''
 
 
@@ -238,24 +235,17 @@ def askForAdditionalColumns():
             print("No he entès... \n")
     
 
-# Innecessari¿?
-def loadAdditionalColumns():
-    global termcatDoc
-
-    termcatDoc['Definició'] = termcatDoc['Definició']
-    termcatDoc['Notes'] = termcatDoc['Notes']
-
-
 # Pujem al Dataframe les columnes de definició i notes captades en el seu map
 def thirdHalfDataFrame():
     global diccionary_formaPrincipal_def
     global diccionary_formaPrincipal_notes
+    global newDataFrame
 
     arreglarDefinicionsiNotes()
 
-    newDataFrame['DEFINICIÓ'] = pd.Series(diccionary_formaPrincipal_def.values())
-    newDataFrame['NOTES'] = pd.Series(diccionary_formaPrincipal_notes.values())
-    
+    newDataFrame['DEFINICIÓ'] = diccionary_formaPrincipal_def.values()
+    newDataFrame['NOTES'] = diccionary_formaPrincipal_notes.values()
+    newDataFrame = newDataFrame.fillna('')
 
 # Fem un tractament de definicions i notes, eliminants salts de linea i espais a principi i final
 def arreglarDefinicionsiNotes():
