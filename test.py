@@ -58,7 +58,7 @@ def setColumnName():
     global columnName
     global outputFileName
 
-    columnName = input("Inica el nom de la columna que fa referencia al document (ex. ALELEX o MENLEX)\n\t")
+    columnName = input("Nom del tipus de catàleg del ST (ex. ALELEX o MENLEX)\n\t")
     columnName = columnName.upper()
     outputFileName = columnName
 
@@ -208,7 +208,9 @@ def exportingToExcel():
     global outputFileName
     global outputFileDirectory
     
-
+    if (not os.path.exists):    #Creació del directori de sortida en cas de que no existeixi
+        os.makedirs(outputFileDirectory)
+    
     outputDirectoryFile = outputFileDirectory + "/catàleg_REF_" + outputFileName
 
     newDataFrame.to_excel(outputDirectoryFile+".xlsx", index=False)
