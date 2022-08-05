@@ -208,11 +208,11 @@ def exportingToExcel():
     global outputFileName
     global outputFileDirectory
     
-    if (not os.path.exists):    #Creació del directori de sortida en cas de que no existeixi
+    outputDirectoryFile = outputFileDirectory + "/catàleg_REF_" + outputFileName
+    
+    if (not os.path.exists(outputFileDirectory)):    #Creació del directori de sortida en cas de que no existeixi
         os.makedirs(outputFileDirectory)
     
-    outputDirectoryFile = outputFileDirectory + "/catàleg_REF_" + outputFileName
-
     newDataFrame.to_excel(outputDirectoryFile+".xlsx", index=False)
     newDataFrame.to_csv(outputDirectoryFile+".txt", sep="\t", index=False)
 
